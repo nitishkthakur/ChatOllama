@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" class="dark h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChatOllama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              surface: {
+                DEFAULT: '#121212',
+                900: '#0f0f10',
+                800: '#171717'
+              }
+            },
+            boxShadow: {
+              elevation: '0 1px 1px rgba(0,0,0,0.6), 0 2px 2px rgba(0,0,0,0.5)'
+            },
+            fontFamily: {
+              sans: ['Calibri', 'Segoe UI', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji']
+            }
+          }
+        }
+      };
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  </head>
+  <body class="h-full bg-surface-900 text-slate-200 selection:bg-slate-700/60 font-sans">
+    <div class="h-screen w-full">
+      <div class="mx-auto h-full w-11/12 max-w-7xl flex flex-col">
+        <header class="shrink-0 py-6 text-center">
+          <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-100">ChatOllama</h1>
+          <p class="mt-1 text-sm md:text-base text-slate-400">Minimalist chat interface</p>
+        </header>
+
+        <main class="flex-1 min-h-0 rounded-lg border border-slate-800 bg-surface shadow-elevation flex flex-col">
+          <div id="chat-log" class="flex-1 min-h-0 overflow-y-auto rounded-t-lg bg-surface p-4">
+            <!-- Messages will appear here -->
+          </div>
+
+          <form
+            x-data="{
+              message: '',
+              appendUser() {
+                const m = this.message.trim();
+                if (!m) return;
+                const log = document.getElementById('chat-log');
+                const wrap = document.createElement('div');
+                wrap.className = 'mb-3 flex justify-end';
+                const bubble = document.createElement('div');
+                bubble.className = 'max-w-[80%] rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-slate-100';
+                bubble.textContent = m;
+                wrap.appendChild(bubble);
+                log.appendChild(wrap);
+                log.scrollTop = log.scrollHeight;
+              }
+            }"
+            @submit="appendUser()"
+            hx-post="/api/chat"
+            hx-target="#chat-log"
+            hx-swap="beforeend"
+            hx-include="[name='message']"
+            hx-on:htmx:afterRequest="message=''; $refs.message.focus(); const log = document.getElementById('chat-log'); log.scrollTop = log.scrollHeight;"
+            class="flex items-end gap-3 border-t border-slate-800 bg-surface-800/60 p-4"
+          >
+            <label for="message" class="sr-only">Message</label>
+            <textarea
+              x-model="message"
+              x-ref="message"
+              id="message"
+              name="message"
+              placeholder="Write a message…"
+              class="min-h-24 max-h-64 flex-1 resize-y rounded-md border border-slate-700 bg-slate-900 px-3 py-2 leading-relaxed text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-600 focus:ring-1 focus:ring-slate-600"
+              @keydown.ctrl.enter.prevent="$refs.send.click()"
+              required
+            ></textarea>
+
+            <button
+              x-ref="send"
+              type="submit"
+              class="select-none rounded-md border border-slate-700 bg-slate-800 px-4 py-2 font-medium text-slate-100 shadow hover:bg-slate-750 hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-600 active:bg-slate-700"
+            >
+              Send
+            </button>
+          </form>
+        </main>
+      </div>
+    </div>
+  </body>
+  
+</html>
